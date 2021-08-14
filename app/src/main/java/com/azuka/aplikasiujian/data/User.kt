@@ -25,7 +25,7 @@ data class Answer(
     val id: String,
     val answer: String = "",
     val imageUrl: String,
-    val isRightAnswer: Boolean = false
+    @field:JvmField val isRightAnswer: Boolean = false
 )
 
 data class StudentAnswer(

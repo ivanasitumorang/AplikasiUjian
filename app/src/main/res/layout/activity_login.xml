@@ -4,42 +4,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.MainActivity">
+    tools:context=".presentation.LoginActivity">
 
-    <EditText
-        android:id="@+id/et_question"
-        android:layout_width="0dp"
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btn_sign_in"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Buat Pertanyaan"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/et_answer_1"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Buat Jawaban 1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_question" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCreate"
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_role_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Buat"
+        android:text="Pilih jenis akun"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_answer_1" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_logout"
+        android:id="@+id/btn_teacher"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="LOGOUT"
+        android:layout_marginTop="16dp"
+        android:text="Guru"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@+id/tv_role_title" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_student"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Murid"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_teacher" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
