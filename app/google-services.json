@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "756895685382",
+    "project_id": "aplikasi-ujian-1d605",
+    "storage_bucket": "aplikasi-ujian-1d605.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756895685382:android:5b12d51238ad9280619c87",
+        "android_client_info": {
+          "package_name": "com.azuka.aplikasiujian"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "756895685382-67o61oogldfnnuk9rughreaual0pdcjr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.azuka.aplikasiujian",
+            "certificate_hash": "55bf64cca57be668ff9628761d8375c4177b7fb7"
+          }
+        },
+        {
+          "client_id": "756895685382-v96gcisoonq35rljlcprl80qmcq09cen.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe577dY8EqwRtbYD13USLk0ns0m5zd9tg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "756895685382-v96gcisoonq35rljlcprl80qmcq09cen.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
