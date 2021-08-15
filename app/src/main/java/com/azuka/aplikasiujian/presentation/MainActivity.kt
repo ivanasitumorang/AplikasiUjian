@@ -3,8 +3,11 @@ package com.azuka.aplikasiujian.presentation
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.azuka.aplikasiujian.data.Answer
+import androidx.appcompat.widget.AppCompatEditText
+import com.azuka.aplikasiujian.R
 import com.azuka.aplikasiujian.data.Question
 import com.azuka.aplikasiujian.data.RoleEnum
 import com.azuka.aplikasiujian.data.User
@@ -65,38 +68,58 @@ class MainActivity : AppCompatActivity() {
 
     private fun initUIListener() {
         with(binding) {
-            btnCreate.setOnClickListener {
-                val question1 = etQuestion.text.toString()
-                val answer1 = etAnswer1.text.toString()
-                val answer2 = etAnswer2.text.toString()
-                val answer3 = etAnswer3.text.toString()
-                val answer4 = etAnswer4.text.toString()
+//            btnCreate.setOnClickListener {
+//                val question1 = etQuestion.text.toString()
+//                val answer1 = etAnswer1.text.toString()
+//                val answer2 = etAnswer2.text.toString()
+//                val answer3 = etAnswer3.text.toString()
+//                val answer4 = etAnswer4.text.toString()
+//
+//                if (question1.isEmpty()) return@setOnClickListener
+//
+//                val answerList = listOf(
+//                    Answer(
+//                        answer = answer1,
+//                        isRightAnswer = true
+//                    ),
+//                    Answer(
+//                        answer = answer2
+//                    ),
+//                    Answer(
+//                        answer = answer3
+//                    ),
+//                    Answer(
+//                        answer = answer4
+//                    )
+//                )
+//
+//                val question = Question(
+//                    question = question1,
+//                    createdBy = user,
+//                    answer = answerList
+//                )
+//
+//                createQuestion(question)
+//            }
 
-                if (question1.isEmpty()) return@setOnClickListener
+            fabAddQuizGroup.setOnClickListener {
+                val builder = AlertDialog.Builder(this@MainActivity)
+                builder.setTitle("Masukkan nama ujian")
+                val customLayout = layoutInflater.inflate(R.layout.dialog_add_quiz_group, null)
+                builder.setView(customLayout)
+                builder.setPositiveButton("Simpan") { dialog, which ->
+                    val quizName = customLayout.findViewById<AppCompatEditText>(R.id.et_group_name)
+                        .text.toString()
 
-                val answerList = listOf(
-                    Answer(
-                        answer = answer1,
-                        isRightAnswer = true
-                    ),
-                    Answer(
-                        answer = answer2
-                    ),
-                    Answer(
-                        answer = answer3
-                    ),
-                    Answer(
-                        answer = answer4
-                    )
-                )
+                    sendQuizNameToActivity(quizName)
 
-                val question = Question(
-                    question = question1,
-                    createdBy = user,
-                    answer = answerList
-                )
+                }
 
-                createQuestion(question)
+                builder.setNegativeButton("Batal") { dialog, which ->
+                    dialog.dismiss()
+                }
+
+                builder.create().show()
             }
 
             btnLogout.setOnClickListener {
@@ -109,6 +132,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun sendQuizNameToActivity(quizName: String) {
+        Toast.makeText(this, quizName, Toast.LENGTH_SHORT).show()
     }
 
     private fun createQuestion(question: Question) {
