@@ -8,10 +8,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatEditText
 import com.azuka.aplikasiujian.R
+import com.azuka.aplikasiujian.data.Constants
+import com.azuka.aplikasiujian.data.Constants.Collection
 import com.azuka.aplikasiujian.data.Question
 import com.azuka.aplikasiujian.data.RoleEnum
 import com.azuka.aplikasiujian.data.User
 import com.azuka.aplikasiujian.databinding.ActivityMainBinding
+import com.azuka.aplikasiujian.external.removeAllSpaces
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -136,6 +139,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun sendQuizNameToActivity(quizName: String) {
         Toast.makeText(this, quizName, Toast.LENGTH_SHORT).show()
+        val quizRef = db.collection(Collection.QUIZZES)
+            .document(quizName.removeAllSpaces())
+        val questionCollection = quizRef.collection(Collection.QUESTIONS)
+        val questionCollectionPath = questionCollection.path
+        Log.i(TAG, "question path = $questionCollectionPath")
     }
 
     private fun createQuestion(question: Question) {

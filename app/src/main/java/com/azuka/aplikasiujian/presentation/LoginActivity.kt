@@ -6,11 +6,15 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import com.azuka.aplikasiujian.R
+import com.azuka.aplikasiujian.base.Result
 import com.azuka.aplikasiujian.data.RoleEnum
 import com.azuka.aplikasiujian.data.User
 import com.azuka.aplikasiujian.databinding.ActivityLoginBinding
+import com.azuka.aplikasiujian.presentation.viewmodel.QuizVM
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -22,8 +26,9 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     companion object {
@@ -33,6 +38,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
 
     private lateinit var googleSignInClient: GoogleSignInClient
+
+    private val viewModel by viewModels<QuizVM>()
 
     private val db = Firebase.firestore
 
@@ -44,6 +51,8 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        initObserver()
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -58,6 +67,22 @@ class LoginActivity : AppCompatActivity() {
         binding.btnSignIn.setOnClickListener {
             signIn()
         }
+    }
+
+    private fun initObserver() {
+        viewModel.createUserStatus.observe(this, Observer {
+            when (it) {
+                is Result.Success -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    resetLoginUI()
+                }
+
+                is Result.Error -> {
+                    Toast.makeText(this, "Gagal simpan data ${it.exception}", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        })
     }
 
     override fun onStart() {
@@ -127,32 +152,21 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
+    private fun resetLoginUI() = with(binding) {
+        btnSignIn.visibility = View.VISIBLE
+        tvRoleTitle.visibility = View.GONE
+        btnTeacher.visibility = View.GONE
+        btnStudent.visibility = View.GONE
+    }
+
+    private fun showUserRoleUI() = with(binding) {
+        btnSignIn.visibility = View.GONE
+        tvRoleTitle.visibility = View.VISIBLE
+        btnTeacher.visibility = View.VISIBLE
+        btnStudent.visibility = View.VISIBLE
+    }
+
     private fun setupUserRole(account: FirebaseUser) {
-        fun showUserRoleUI() = with(binding) {
-            btnSignIn.visibility = View.GONE
-            tvRoleTitle.visibility = View.VISIBLE
-            btnTeacher.visibility = View.VISIBLE
-            btnStudent.visibility = View.VISIBLE
-        }
-
-        fun resetLoginUI() = with(binding) {
-            btnSignIn.visibility = View.VISIBLE
-            tvRoleTitle.visibility = View.GONE
-            btnTeacher.visibility = View.GONE
-            btnStudent.visibility = View.GONE
-        }
-
-        fun saveDataUser(user: User) {
-            db.collection("users").document(user.id)
-                .set(user)
-                .addOnSuccessListener {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    resetLoginUI()
-                }.addOnFailureListener { e ->
-                    Toast.makeText(this, "Gagal simpan data $e", Toast.LENGTH_SHORT).show()
-                }
-        }
-
         val user = User(
             id = account.uid,
             name = account.displayName ?: "Nama belum diset"
@@ -161,11 +175,11 @@ class LoginActivity : AppCompatActivity() {
         showUserRoleUI()
         binding.btnTeacher.setOnClickListener {
             val dataToSave = user.copy(role = RoleEnum.Teacher.code)
-            saveDataUser(dataToSave)
+            viewModel.createUser(dataToSave)
         }
         binding.btnStudent.setOnClickListener {
             val dataToSave = user.copy(role = RoleEnum.Student.code)
-            saveDataUser(dataToSave)
+            viewModel.createUser(dataToSave)
         }
     }
 }
