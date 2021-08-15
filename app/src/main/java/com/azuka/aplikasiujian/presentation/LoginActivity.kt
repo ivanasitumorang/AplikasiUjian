@@ -60,6 +60,14 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        val user = firebaseAuth.currentUser
+        if (user != null) {
+            checkIfUserAlreadyRegistered(user)
+        }
+    }
+
     private val loginLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -127,11 +135,19 @@ class LoginActivity : AppCompatActivity() {
             btnStudent.visibility = View.VISIBLE
         }
 
+        fun resetLoginUI() = with(binding) {
+            btnSignIn.visibility = View.VISIBLE
+            tvRoleTitle.visibility = View.GONE
+            btnTeacher.visibility = View.GONE
+            btnStudent.visibility = View.GONE
+        }
+
         fun saveDataUser(user: User) {
             db.collection("users").document(user.id)
                 .set(user)
                 .addOnSuccessListener {
                     startActivity(Intent(this, MainActivity::class.java))
+                    resetLoginUI()
                 }.addOnFailureListener { e ->
                     Toast.makeText(this, "Gagal simpan data $e", Toast.LENGTH_SHORT).show()
                 }

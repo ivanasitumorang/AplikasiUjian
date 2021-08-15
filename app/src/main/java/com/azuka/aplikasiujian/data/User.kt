@@ -7,13 +7,13 @@ package com.azuka.aplikasiujian.data
  */
 
 data class User(
-    val name: String,
-    val id: String,
+    val name: String = "",
+    val id: String = "",
     val role: Int = RoleEnum.Teacher.code
 )
 
 data class Question(
-    val id: String,
+    val id: String = (System.currentTimeMillis()/1000).toString(),
     val question: String,
     val imagesUrl: List<String> = emptyList(),
     val answer: List<Answer>,
@@ -22,9 +22,9 @@ data class Question(
 )
 
 data class Answer(
-    val id: String,
+    val id: String = (System.currentTimeMillis()/1000).toString(),
     val answer: String = "",
-    val imageUrl: String,
+    val imageUrl: String = "",
     @field:JvmField val isRightAnswer: Boolean = false
 )
 
