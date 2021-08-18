@@ -14,8 +14,10 @@ import com.azuka.aplikasiujian.data.Constants.Collection
 import com.azuka.aplikasiujian.data.Question
 import com.azuka.aplikasiujian.data.RoleEnum
 import com.azuka.aplikasiujian.data.User
+import com.azuka.aplikasiujian.data.questions
 import com.azuka.aplikasiujian.databinding.ActivityMainBinding
 import com.azuka.aplikasiujian.external.removeAllSpaces
+import com.azuka.aplikasiujian.presentation.adapter.QuestionAdapter
 import com.azuka.aplikasiujian.presentation.viewmodel.QuizVM
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -36,12 +38,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private lateinit var adapter: QuestionAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initUIListener()
         initObserver()
+        adapter = QuestionAdapter()
+        binding.rvQuestion.adapter = adapter
 
         viewModel.getUser()
 
@@ -68,17 +74,45 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        viewModel.questions.observe(this, {
+            when (it) {
+                is Result.Success -> {
+                    adapter.submitList(it.data)
+                }
+
+                is Result.Error -> {
+                    Toast.makeText(this, "Data ga ada", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+
+        viewModel.createQuestionStatus.observe(this, {
+            when (it) {
+                is Result.Success -> {
+                    Toast.makeText(this, "Berhasil masukkan pertanyaan", Toast.LENGTH_SHORT).show()
+                }
+
+                is Result.Error -> {
+                    Toast.makeText(this, "Data ga ada", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
     }
 
     private fun initUIBasedOnRole(user: User) {
         fun setupTeacherUI() {
             binding.clTeacher.visibility = View.VISIBLE
             binding.clStudent.visibility = View.GONE
+            questions.forEach {
+                viewModel.createQuestion("uts1", it.copy(createdBy = user))
+            }
         }
 
         fun setupStudentUI() {
             binding.clTeacher.visibility = View.GONE
             binding.clStudent.visibility = View.VISIBLE
+            viewModel.getQuestions("uts1")
         }
         if (user.role == RoleEnum.Teacher.code) setupTeacherUI()
         else setupStudentUI()
