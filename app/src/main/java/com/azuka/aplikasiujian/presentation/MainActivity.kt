@@ -4,26 +4,27 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatEditText
 import com.azuka.aplikasiujian.R
-import com.azuka.aplikasiujian.data.Constants
+import com.azuka.aplikasiujian.base.Result
 import com.azuka.aplikasiujian.data.Constants.Collection
 import com.azuka.aplikasiujian.data.Question
 import com.azuka.aplikasiujian.data.RoleEnum
 import com.azuka.aplikasiujian.data.User
 import com.azuka.aplikasiujian.databinding.ActivityMainBinding
 import com.azuka.aplikasiujian.external.removeAllSpaces
+import com.azuka.aplikasiujian.presentation.viewmodel.QuizVM
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "Hasil"
@@ -31,11 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     private val db = Firebase.firestore
 
-    private val firebaseAuth by lazy {
-        FirebaseAuth.getInstance()
-    }
-
-    private lateinit var user: User
+    private val viewModel by viewModels<QuizVM>()
 
     private lateinit var binding: ActivityMainBinding
 
@@ -44,18 +41,36 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initUIListener()
+        initObserver()
 
-        db.collection("users").document(firebaseAuth.currentUser!!.uid)
-            .get().addOnSuccessListener { docSnapshot ->
-                user = docSnapshot.toObject<User>()!!
-                Log.i("Hasil", "user = $user")
-                initUIBasedOnRole()
-            }
+        viewModel.getUser()
+
+//        db.collection("users").document(firebaseAuth.currentUser!!.uid)
+//            .get().addOnSuccessListener { docSnapshot ->
+//                user = docSnapshot.toObject<User>()!!
+//                Log.i("Hasil", "user = $user")
+//                initUIBasedOnRole()
+//            }
 
 
     }
 
-    private fun initUIBasedOnRole() {
+    private fun initObserver() {
+        viewModel.activeUser.observe(this, {
+            when (it) {
+                is Result.Success -> {
+                    initUIBasedOnRole(it.data)
+                }
+
+                is Result.Error -> {
+                    Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        })
+    }
+
+    private fun initUIBasedOnRole(user: User) {
         fun setupTeacherUI() {
             binding.clTeacher.visibility = View.VISIBLE
             binding.clStudent.visibility = View.GONE
@@ -115,7 +130,6 @@ class MainActivity : AppCompatActivity() {
                         .text.toString()
 
                     sendQuizNameToActivity(quizName)
-
                 }
 
                 builder.setNegativeButton("Batal") { dialog, which ->
@@ -144,6 +158,7 @@ class MainActivity : AppCompatActivity() {
         val questionCollection = quizRef.collection(Collection.QUESTIONS)
         val questionCollectionPath = questionCollection.path
         Log.i(TAG, "question path = $questionCollectionPath")
+
     }
 
     private fun createQuestion(question: Question) {
