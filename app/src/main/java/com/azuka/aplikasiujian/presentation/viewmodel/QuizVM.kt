@@ -9,11 +9,11 @@ import com.azuka.aplikasiujian.base.Result
 import com.azuka.aplikasiujian.data.Constants.Collection
 import com.azuka.aplikasiujian.data.Question
 import com.azuka.aplikasiujian.data.User
-import com.azuka.aplikasiujian.presentation.MainActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +28,8 @@ import javax.inject.Inject
 @HiltViewModel
 class QuizVM @Inject constructor(
     private val database: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val storage: FirebaseStorage
 ) : ViewModel() {
 
 
@@ -39,19 +40,24 @@ class QuizVM @Inject constructor(
             val questionRef = database.collection(Collection.QUIZZES).document(quizName)
                 .collection(Collection.QUESTIONS)
 
-            questionRef.add(question).addOnCompleteListener {
-                if (it.isSuccessful) {
-                    _createQuestionStatus.postValue(Result.Success(true))
-                } else {
-                    _createQuestionStatus.postValue(Result.Error(Exception("Gagal")))
+            val url =
+                "gs://aplikasi-ujian-1d605.appspot.com/questions/Screen Shot 2021-04-19 at 10.30.34.png"
+            storage.getReferenceFromUrl(url).downloadUrl
+                .addOnSuccessListener { imageUri ->
+                    val imageUrl = imageUri.toString()
+                    Log.i("Hasil", "image url = $imageUri")
+                    val quest = question.copy(imageUrl = imageUrl)
+
+                    questionRef.add(quest).addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            _createQuestionStatus.postValue(Result.Success(true))
+                        } else {
+                            _createQuestionStatus.postValue(Result.Error(Exception("Gagal")))
+                        }
+                    }
+                }.addOnFailureListener {
+                    _createQuestionStatus.postValue(Result.Error(Exception("Gagal upload gambar")))
                 }
-            }
-//                .addOnSuccessListener { documentRef ->
-//                    Log.d("Hasil", "Questions added with ID: ${documentRef.id}")
-//                }
-//                .addOnFailureListener { e ->
-//                    Log.w("Hasil", "Error adding document", e)
-//                }
         }
     }
 
@@ -106,16 +112,6 @@ class QuizVM @Inject constructor(
                     }
 
                 }
-//                .addOnSuccessListener { documents ->
-//                    val questionList = documents.map {
-//                        val question = it.toObject<Question>()
-//                        question
-//                    }
-//                    _questions.postValue(Result.Success(questionList))
-//                }
-//                .addOnFailureListener { e ->
-//                    _questions.postValue(Result.Error(e))
-//                }
         }
     }
 }

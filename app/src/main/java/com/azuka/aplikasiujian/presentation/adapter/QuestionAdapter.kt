@@ -1,12 +1,14 @@
 package com.azuka.aplikasiujian.presentation.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.azuka.aplikasiujian.data.Question
 import com.azuka.aplikasiujian.databinding.ItemQuizGroupBinding
+import com.squareup.picasso.Picasso
 
 
 /**
@@ -32,6 +34,12 @@ class QuestionAdapter() : ListAdapter<Question, QuestionAdapter.ViewHolder>(Ques
             binding.rbAnswer1.text = question.answer[0].answer
             binding.rbAnswer2.text = question.answer[1].answer
             binding.rbAnswer3.text = question.answer[2].answer
+
+            if (question.imageUrl.isNotEmpty()) {
+                binding.ivQuestion.visibility = View.VISIBLE
+                Picasso.get().load(question.imageUrl)
+                    .into(binding.ivQuestion)
+            }
         }
     }
 

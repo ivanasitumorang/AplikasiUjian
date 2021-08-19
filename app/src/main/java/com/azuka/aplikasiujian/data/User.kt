@@ -15,7 +15,7 @@ data class User(
 data class Question(
     val id: String = (System.currentTimeMillis() / 1000).toString(),
     val question: String = "",
-    val imagesUrl: List<String> = emptyList(),
+    val imageUrl: String = "",
     val answer: List<Answer> = emptyList(),
     val createdBy: User = User(),
     val selectedAnswer: Answer? = null
