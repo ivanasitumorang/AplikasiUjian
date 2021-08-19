@@ -11,5 +11,6 @@ interface Constants {
         const val QUIZZES = "quizzes"
         const val QUESTIONS = "questions"
         const val USERS = "users"
+        const val STUDENT_ANSWER = "student-answer"
     }
 }

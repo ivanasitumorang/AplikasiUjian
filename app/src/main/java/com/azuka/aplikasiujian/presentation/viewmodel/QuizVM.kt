@@ -8,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.azuka.aplikasiujian.base.Result
 import com.azuka.aplikasiujian.data.Constants.Collection
 import com.azuka.aplikasiujian.data.Question
+import com.azuka.aplikasiujian.data.StudentAnswer
 import com.azuka.aplikasiujian.data.User
+import com.azuka.aplikasiujian.external.removeAllSpaces
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -39,6 +41,8 @@ class QuizVM @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val questionRef = database.collection(Collection.QUIZZES).document(quizName)
                 .collection(Collection.QUESTIONS)
+                .document()
+            val questionId = questionRef.id
 
             val url =
                 "gs://aplikasi-ujian-1d605.appspot.com/questions/Screen Shot 2021-04-19 at 10.30.34.png"
@@ -46,9 +50,9 @@ class QuizVM @Inject constructor(
                 .addOnSuccessListener { imageUri ->
                     val imageUrl = imageUri.toString()
                     Log.i("Hasil", "image url = $imageUri")
-                    val quest = question.copy(imageUrl = imageUrl)
+                    val quest = question.copy(id = questionId, imageUrl = imageUrl)
 
-                    questionRef.add(quest).addOnCompleteListener {
+                    questionRef.set(quest, SetOptions.merge()).addOnCompleteListener {
                         if (it.isSuccessful) {
                             _createQuestionStatus.postValue(Result.Success(true))
                         } else {
@@ -111,6 +115,35 @@ class QuizVM @Inject constructor(
                         _questions.postValue(Result.Error(Exception("Gagal fetch data")))
                     }
 
+                }
+        }
+    }
+
+    private val _saveAnswerStatus = MutableLiveData<String>()
+    val saveAnswerStatus: LiveData<String> get() = _saveAnswerStatus
+    fun saveAnswer(answeredBy: User, quizName: String, question: Question) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val studentAnswerId = answeredBy.name.removeAllSpaces() + "-" + answeredBy.id
+            val studentAnswer = StudentAnswer(
+                answeredBy = answeredBy,
+                questions = question
+            )
+            val questionId = question.id
+            Log.i("Hasil", "questionId = $questionId")
+            database.collection(Collection.STUDENT_ANSWER)
+                .document(studentAnswerId)
+                .collection(quizName)
+                .document(questionId)
+                .set(studentAnswer, SetOptions.merge())
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        Log.i("Hasil", "Jawaban pertanyaan id ${question.id} tersimpan")
+//                        _saveAnswerStatus.postValue("Jawaban pertanyaan id ${question.id} tersimpan")
+                    } else {
+                        // error
+                        Log.i("Hasil", "Jawaban pertanyaan id ${question.id} tidak tersimpan")
+//                        _saveAnswerStatus.postValue("Jawaban pertanyaan id ${question.id} tidak tersimpan")
+                    }
                 }
         }
     }

@@ -30,6 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "Hasil"
+        private const val QUIZ_NAME = "uts1"
     }
 
     private val db = Firebase.firestore
@@ -40,31 +41,35 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var adapter: QuestionAdapter
 
+    private var user: User? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initUIListener()
         initObserver()
-        adapter = QuestionAdapter()
+        adapter = QuestionAdapter { question, answer ->
+
+            Log.i("Hasil", "selected answer = ${answer.id} dari pertanyaan ${question.id}")
+            user?.let {
+                viewModel.saveAnswer(
+                    answeredBy = it,
+                    quizName = QUIZ_NAME,
+                    question.copy(selectedAnswer = answer)
+                )
+            }
+        }
         binding.rvQuestion.adapter = adapter
 
         viewModel.getUser()
-
-//        db.collection("users").document(firebaseAuth.currentUser!!.uid)
-//            .get().addOnSuccessListener { docSnapshot ->
-//                user = docSnapshot.toObject<User>()!!
-//                Log.i("Hasil", "user = $user")
-//                initUIBasedOnRole()
-//            }
-
-
     }
 
     private fun initObserver() {
         viewModel.activeUser.observe(this, {
             when (it) {
                 is Result.Success -> {
+                    user = it.data
                     initUIBasedOnRole(it.data)
                 }
 
@@ -105,14 +110,14 @@ class MainActivity : AppCompatActivity() {
             binding.clTeacher.visibility = View.VISIBLE
             binding.clStudent.visibility = View.GONE
             questions.forEach {
-                viewModel.createQuestion("uts1", it.copy(createdBy = user))
+                viewModel.createQuestion(QUIZ_NAME, it.copy(createdBy = user))
             }
         }
 
         fun setupStudentUI() {
             binding.clTeacher.visibility = View.GONE
             binding.clStudent.visibility = View.VISIBLE
-            viewModel.getQuestions("uts1")
+            viewModel.getQuestions(QUIZ_NAME)
         }
         if (user.role == RoleEnum.Teacher.code) setupTeacherUI()
         else setupStudentUI()
