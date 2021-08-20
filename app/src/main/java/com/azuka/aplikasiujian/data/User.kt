@@ -1,5 +1,7 @@
 package com.azuka.aplikasiujian.data
 
+import com.azuka.aplikasiujian.external.removeAllSpaces
+
 
 /**
  * Created by ivanaazuka on 8/14/21.
@@ -19,7 +21,6 @@ data class Question(
     val question: String = "",
     val imageUrl: String = "",
     val answer: List<Answer> = emptyList(),
-    val createdBy: User = User(),
     val selectedAnswer: Answer? = null
 )
 
@@ -31,15 +32,27 @@ data class Answer(
     @field:JvmField val isRightAnswer: Boolean = false
 )
 
-data class StudentAnswerA(
-    val answeredBy: User,
-    val questions: List<Question>
-)
-
 data class StudentAnswer(
     val docType: String = "student-answer",
-    val answeredBy: User,
-    val questions: Question
+    val questions: Question = Question()
+)
+
+data class Quiz(
+    val name: String = "",
+    val id: String = name.removeAllSpaces().plus("-").plus(System.currentTimeMillis()),
+    val startTime: String = "",
+    val endTime: String = "",
+    val createdBy: User = User(),
+)
+
+data class QuizStudent(
+    val name: String = "",
+    val id: String = "",
+    val startTime: String = "",
+    val endTime: String = "",
+    val score: String = "",
+    val isTaken: Boolean = false,
+    val answeredBy: User = User(),
 )
 
 val questions = listOf(
@@ -49,8 +62,7 @@ val questions = listOf(
             Answer(id = "1234", answer = "1", isRightAnswer = true),
             Answer(id = "1235", answer = "2", isRightAnswer = false),
             Answer(id = "1236", answer = "3", isRightAnswer = false)
-        ),
-        createdBy = User()
+        )
     ),
     Question(
         question = "Mana kah angka empat..?",
@@ -58,8 +70,7 @@ val questions = listOf(
             Answer(id = "2234", answer = "4", isRightAnswer = true),
             Answer(id = "3234", answer = "7", isRightAnswer = false),
             Answer(id = "4234", answer = "3", isRightAnswer = false)
-        ),
-        createdBy = User()
+        )
     ),
     Question(
         question = "Mana kah angka lima..?",
@@ -67,7 +78,6 @@ val questions = listOf(
             Answer(id = "12341", answer = "5", isRightAnswer = true),
             Answer(id = "12342", answer = "3", isRightAnswer = false),
             Answer(id = "12343", answer = "1", isRightAnswer = false)
-        ),
-        createdBy = User()
+        )
     )
 )

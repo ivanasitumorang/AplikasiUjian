@@ -6,10 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuka.aplikasiujian.base.Result
+import com.azuka.aplikasiujian.data.*
 import com.azuka.aplikasiujian.data.Constants.Collection
-import com.azuka.aplikasiujian.data.Question
-import com.azuka.aplikasiujian.data.StudentAnswer
-import com.azuka.aplikasiujian.data.User
 import com.azuka.aplikasiujian.external.removeAllSpaces
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,12 +32,30 @@ class QuizVM @Inject constructor(
     private val storage: FirebaseStorage
 ) : ViewModel() {
 
+    var quizId = ""
+
+    private val _createQuizStatus = MutableLiveData<Boolean>()
+    val createQuizStatus: LiveData<Boolean> get() = _createQuizStatus
+    fun createQuiz(quiz: Quiz) {
+        quizId = quiz.id
+        viewModelScope.launch(Dispatchers.IO) {
+            database.collection(Collection.QUIZZES)
+                .document(quiz.id)
+                .set(quiz, SetOptions.merge())
+                .addOnSuccessListener {
+                    _createQuizStatus.postValue(true)
+                }.addOnFailureListener {
+                    _createQuizStatus.postValue(false)
+                }
+        }
+    }
 
     private val _createQuestionStatus = MutableLiveData<Result<Boolean>>()
     val createQuestionStatus: LiveData<Result<Boolean>> get() = _createQuestionStatus
-    fun createQuestion(quizName: String, question: Question) {
+    fun createQuestion(quizId: String, question: Question) {
         viewModelScope.launch(Dispatchers.IO) {
-            val questionRef = database.collection(Collection.QUIZZES).document(quizName)
+            val questionRef = database.collection(Collection.QUIZZES)
+                .document(quizId)
                 .collection(Collection.QUESTIONS)
                 .document()
             val questionId = questionRef.id
@@ -79,20 +95,20 @@ class QuizVM @Inject constructor(
         }
     }
 
-    private val _activeUser = MutableLiveData<Result<User>>()
-    val activeUser: LiveData<Result<User>> get() = _activeUser
+    private val _activeUser = MutableLiveData<User>()
+    val activeUser: LiveData<User> get() = _activeUser
     fun getUser() {
         viewModelScope.launch(Dispatchers.IO) {
             database.collection(Collection.USERS).document(auth.currentUser!!.uid)
                 .get().addOnSuccessListener { docSnapshot ->
                     val user = docSnapshot.toObject<User>()
                     if (user != null) {
-                        _activeUser.postValue(Result.Success(user))
+                        _activeUser.postValue(user)
                     } else {
-                        _activeUser.postValue(Result.Error(Exception("No User")))
+                        _activeUser.postValue(null)
                     }
                 }.addOnFailureListener { e ->
-                    _activeUser.postValue(Result.Error(e))
+                    _activeUser.postValue(null)
                 }
         }
     }
@@ -121,19 +137,36 @@ class QuizVM @Inject constructor(
 
     private val _saveAnswerStatus = MutableLiveData<String>()
     val saveAnswerStatus: LiveData<String> get() = _saveAnswerStatus
-    fun saveAnswer(answeredBy: User, quizName: String, question: Question) {
+    fun saveAnswer(quizId: String, question: Question) {
         viewModelScope.launch(Dispatchers.IO) {
-            val studentAnswerId = answeredBy.name.removeAllSpaces() + "-" + answeredBy.id
-            val studentAnswer = StudentAnswer(
-                answeredBy = answeredBy,
-                questions = question
-            )
-            val questionId = question.id
-            Log.i("Hasil", "questionId = $questionId")
+//            val studentAnswerId = answeredBy.name.removeAllSpaces() + "-" + answeredBy.id
+//            val studentAnswer = StudentAnswer(
+//                questions = question
+//            )
+//            val questionId = question.id
+//            Log.i("Hasil", "questionId = $questionId")
+//            database.collection(Collection.STUDENT_ANSWER)
+//                .document(studentAnswerId)
+//                .collection(quizId)
+//                .document(questionId)
+//                .set(studentAnswer, SetOptions.merge())
+//                .addOnCompleteListener {
+//                    if (it.isSuccessful) {
+//                        Log.i("Hasil", "Jawaban pertanyaan id ${question.id} tersimpan")
+////                        _saveAnswerStatus.postValue("Jawaban pertanyaan id ${question.id} tersimpan")
+//                    } else {
+//                        // error
+//                        Log.i("Hasil", "Jawaban pertanyaan id ${question.id} tidak tersimpan")
+////                        _saveAnswerStatus.postValue("Jawaban pertanyaan id ${question.id} tidak tersimpan")
+//                    }
+//                }
+
+            val studentAnswer = StudentAnswer(questions = question)
+            val studentAnswerId = getStudentAnswerNodeId(activeUser.value!!)
             database.collection(Collection.STUDENT_ANSWER)
                 .document(studentAnswerId)
-                .collection(quizName)
-                .document(questionId)
+                .collection(quizId)
+                .document(question.id)
                 .set(studentAnswer, SetOptions.merge())
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
@@ -144,6 +177,25 @@ class QuizVM @Inject constructor(
                         Log.i("Hasil", "Jawaban pertanyaan id ${question.id} tidak tersimpan")
 //                        _saveAnswerStatus.postValue("Jawaban pertanyaan id ${question.id} tidak tersimpan")
                     }
+                }
+        }
+    }
+
+    private fun getStudentAnswerNodeId(user: User): String = with(user) {
+        name.removeAllSpaces() + "-" + id
+    }
+
+    private val _startQuizStatus = MutableLiveData<Boolean>()
+    val startQuizStatus: LiveData<Boolean> get() = _startQuizStatus
+    fun startQuizByStudent(quizStudent: QuizStudent) {
+        viewModelScope.launch(Dispatchers.IO) {
+            database.collection(Collection.STUDENT_ANSWER)
+                .document(getStudentAnswerNodeId(quizStudent.answeredBy))
+                .set(quizStudent)
+                .addOnSuccessListener {
+                    _startQuizStatus.postValue(true)
+                }.addOnFailureListener {
+                    _startQuizStatus.postValue(false)
                 }
         }
     }

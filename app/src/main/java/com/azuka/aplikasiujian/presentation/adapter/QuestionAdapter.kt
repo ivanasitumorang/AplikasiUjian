@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.azuka.aplikasiujian.R
 import com.azuka.aplikasiujian.data.Answer
 import com.azuka.aplikasiujian.data.Question
+import com.azuka.aplikasiujian.databinding.ItemQuestionBinding
 import com.azuka.aplikasiujian.databinding.ItemQuizGroupBinding
 import com.squareup.picasso.Picasso
 
@@ -23,7 +24,7 @@ class QuestionAdapter(
 ) : ListAdapter<Question, QuestionAdapter.ViewHolder>(QuestionItemDiff) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val itemBinding =
-            ItemQuizGroupBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ItemQuestionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(itemBinding)
     }
 
@@ -31,7 +32,7 @@ class QuestionAdapter(
         holder.bind(getItem(position), onAnswerClick)
     }
 
-    class ViewHolder(private val binding: ItemQuizGroupBinding) :
+    class ViewHolder(private val binding: ItemQuestionBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(question: Question, onAnswerClick: (Question, Answer) -> Unit) {
             binding.tvQuestion.text = question.question

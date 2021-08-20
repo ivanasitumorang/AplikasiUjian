@@ -10,13 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatEditText
 import com.azuka.aplikasiujian.R
 import com.azuka.aplikasiujian.base.Result
-import com.azuka.aplikasiujian.data.Constants.Collection
-import com.azuka.aplikasiujian.data.Question
-import com.azuka.aplikasiujian.data.RoleEnum
-import com.azuka.aplikasiujian.data.User
-import com.azuka.aplikasiujian.data.questions
+import com.azuka.aplikasiujian.data.*
 import com.azuka.aplikasiujian.databinding.ActivityMainBinding
-import com.azuka.aplikasiujian.external.removeAllSpaces
 import com.azuka.aplikasiujian.presentation.adapter.QuestionAdapter
 import com.azuka.aplikasiujian.presentation.viewmodel.QuizVM
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -25,12 +20,12 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
+import org.joda.time.DateTime
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "Hasil"
-        private const val QUIZ_NAME = "uts1"
     }
 
     private val db = Firebase.firestore
@@ -52,13 +47,10 @@ class MainActivity : AppCompatActivity() {
         adapter = QuestionAdapter { question, answer ->
 
             Log.i("Hasil", "selected answer = ${answer.id} dari pertanyaan ${question.id}")
-            user?.let {
-                viewModel.saveAnswer(
-                    answeredBy = it,
-                    quizName = QUIZ_NAME,
-                    question.copy(selectedAnswer = answer)
-                )
-            }
+            viewModel.saveAnswer(
+                quizId = viewModel.quizId,
+                question.copy(selectedAnswer = answer)
+            )
         }
         binding.rvQuestion.adapter = adapter
 
@@ -67,16 +59,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun initObserver() {
         viewModel.activeUser.observe(this, {
-            when (it) {
-                is Result.Success -> {
-                    user = it.data
-                    initUIBasedOnRole(it.data)
-                }
-
-                is Result.Error -> {
-                    Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show()
-                    finish()
-                }
+            if (it != null) {
+                user = it
+                initUIBasedOnRole(it)
+            } else {
+                Toast.makeText(this, "user aktif gada", Toast.LENGTH_SHORT).show()
+                finish()
             }
         })
 
@@ -103,21 +91,28 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        viewModel.createQuizStatus.observe(this, { success ->
+            if (success) {
+                Toast.makeText(this, "Berhasil menyimpan quiz", Toast.LENGTH_SHORT).show()
+                questions.forEach { question ->
+                    viewModel.createQuestion(viewModel.quizId, question)
+                }
+            }
+            else Toast.makeText(this, "Gagal menyimpan quiz", Toast.LENGTH_SHORT).show()
+        })
     }
 
     private fun initUIBasedOnRole(user: User) {
         fun setupTeacherUI() {
             binding.clTeacher.visibility = View.VISIBLE
             binding.clStudent.visibility = View.GONE
-            questions.forEach {
-                viewModel.createQuestion(QUIZ_NAME, it.copy(createdBy = user))
-            }
         }
 
         fun setupStudentUI() {
             binding.clTeacher.visibility = View.GONE
             binding.clStudent.visibility = View.VISIBLE
-            viewModel.getQuestions(QUIZ_NAME)
+            viewModel.getQuestions(viewModel.quizId)
         }
         if (user.role == RoleEnum.Teacher.code) setupTeacherUI()
         else setupStudentUI()
@@ -192,22 +187,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun sendQuizNameToActivity(quizName: String) {
         Toast.makeText(this, quizName, Toast.LENGTH_SHORT).show()
-        val quizRef = db.collection(Collection.QUIZZES)
-            .document(quizName.removeAllSpaces())
-        val questionCollection = quizRef.collection(Collection.QUESTIONS)
-        val questionCollectionPath = questionCollection.path
-        Log.i(TAG, "question path = $questionCollectionPath")
-
-    }
-
-    private fun createQuestion(question: Question) {
-        val questionRef = db.collection("questions")
-        questionRef.add(question)
-            .addOnSuccessListener { documentRef ->
-                Log.d(TAG, "DocumentSnapshot added with ID: ${documentRef.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Error adding document", e)
-            }
+        val startTime = DateTime.now()
+        val endTime = startTime.plusMinutes(10)
+        val quiz = Quiz(
+            name = quizName,
+            startTime = startTime.toString(),
+            endTime = endTime.toString(),
+            createdBy = user!!
+        )
+        viewModel.createQuiz(quiz)
     }
 }
