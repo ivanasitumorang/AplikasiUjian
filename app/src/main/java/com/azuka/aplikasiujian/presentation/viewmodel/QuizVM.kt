@@ -115,9 +115,9 @@ class QuizVM @Inject constructor(
 
     private val _questions = MutableLiveData<Result<List<Question>>>()
     val questions: LiveData<Result<List<Question>>> get() = _questions
-    fun getQuestions(quizName: String) {
+    fun getQuestions(quizId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            database.collection(Collection.QUIZZES).document(quizName)
+            database.collection(Collection.QUIZZES).document(quizId)
                 .collection(Collection.QUESTIONS)
                 .get()
                 .addOnCompleteListener {
@@ -165,7 +165,9 @@ class QuizVM @Inject constructor(
             val studentAnswerId = getStudentAnswerNodeId(activeUser.value!!)
             database.collection(Collection.STUDENT_ANSWER)
                 .document(studentAnswerId)
-                .collection(quizId)
+                .collection(Collection.QUIZZES)
+                .document(quizId)
+                .collection(Collection.QUESTIONS)
                 .document(question.id)
                 .set(studentAnswer, SetOptions.merge())
                 .addOnCompleteListener {
@@ -196,6 +198,51 @@ class QuizVM @Inject constructor(
                     _startQuizStatus.postValue(true)
                 }.addOnFailureListener {
                     _startQuizStatus.postValue(false)
+                }
+        }
+    }
+
+
+    private val _availableQuizzes = MutableLiveData<List<Quiz>>()
+    val availableQuizzes: LiveData<List<Quiz>> get() = _availableQuizzes
+    fun getAvailableQuiz() {
+        viewModelScope.launch(Dispatchers.IO) {
+            database.collection(Collection.QUIZZES)
+                .get()
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        val quizList = it.result.documents.map { doc ->
+                            val quiz = doc.toObject<Quiz>()!!
+                            quiz
+                        }
+                        _availableQuizzes.postValue(quizList)
+                    } else {
+                        _availableQuizzes.postValue(emptyList())
+                    }
+
+                }
+        }
+    }
+
+    private val _takenQuizzes = MutableLiveData<List<QuizStudent>>()
+    val takenQuizzes: LiveData<List<QuizStudent>> get() = _takenQuizzes
+    fun getTakenQuiz() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val studentAnswerId = getStudentAnswerNodeId(activeUser.value!!)
+            Log.i("Hasil", "quizId = $quizId")
+            database.collection(Collection.STUDENT_ANSWER)
+                .get()
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        val quizList = it.result.documents.map { doc ->
+                            val quiz = doc.toObject<QuizStudent>()!!
+                            quiz
+                        }
+                        _takenQuizzes.postValue(quizList)
+                    } else {
+                        _takenQuizzes.postValue(emptyList())
+                    }
+
                 }
         }
     }

@@ -51,8 +51,7 @@ data class QuizStudent(
     val startTime: String = "",
     val endTime: String = "",
     val score: String = "",
-    val isTaken: Boolean = false,
-    val answeredBy: User = User(),
+    val answeredBy: User = User()
 )
 
 val questions = listOf(

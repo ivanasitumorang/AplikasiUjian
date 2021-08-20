@@ -12,29 +12,31 @@ import com.azuka.aplikasiujian.R
 import com.azuka.aplikasiujian.base.Result
 import com.azuka.aplikasiujian.data.*
 import com.azuka.aplikasiujian.databinding.ActivityMainBinding
+import com.azuka.aplikasiujian.external.hide
+import com.azuka.aplikasiujian.external.show
 import com.azuka.aplikasiujian.presentation.adapter.QuestionAdapter
+import com.azuka.aplikasiujian.presentation.adapter.QuizAdapter
+import com.azuka.aplikasiujian.presentation.adapter.QuizStudentAdapter
 import com.azuka.aplikasiujian.presentation.viewmodel.QuizVM
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import org.joda.time.DateTime
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    companion object {
-        private const val TAG = "Hasil"
-    }
-
-    private val db = Firebase.firestore
 
     private val viewModel by viewModels<QuizVM>()
 
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var adapter: QuestionAdapter
+
+    private lateinit var quizStudentAdapter: QuizStudentAdapter
+
+    private lateinit var quizAdapter: QuizAdapter
 
     private var user: User? = null
 
@@ -52,7 +54,27 @@ class MainActivity : AppCompatActivity() {
                 question.copy(selectedAnswer = answer)
             )
         }
+
+        quizStudentAdapter = QuizStudentAdapter { quizStudent ->
+//            viewModel.startQuizByStudent(quizStudent)
+            Log.i("Hasil", "quiz ${quizStudent.name} diklik")
+            viewModel.quizId = quizStudent.id
+        }
+
+        quizAdapter = QuizAdapter { quiz ->
+            viewModel.quizId = quiz.id
+            val quizStudent = QuizStudent(
+                name = quiz.name,
+                id = quiz.id,
+                startTime = DateTime.now().toString(),
+                answeredBy = user!!
+            )
+            viewModel.startQuizByStudent(quizStudent)
+        }
+
         binding.rvQuestion.adapter = adapter
+        binding.rvAvailableQuiz.adapter = quizAdapter
+        binding.rvQuizStudent.adapter = quizStudentAdapter
 
         viewModel.getUser()
     }
@@ -65,6 +87,16 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "user aktif gada", Toast.LENGTH_SHORT).show()
                 finish()
+            }
+        })
+
+        viewModel.startQuizStatus.observe(this, { started ->
+            if (started) {
+                viewModel.getQuestions(viewModel.quizId)
+                binding.rvQuizStudent.hide()
+                binding.rvQuestion.show()
+            } else {
+                Toast.makeText(this, "Quiz gagal dimulai", Toast.LENGTH_SHORT).show()
             }
         })
 
@@ -98,8 +130,15 @@ class MainActivity : AppCompatActivity() {
                 questions.forEach { question ->
                     viewModel.createQuestion(viewModel.quizId, question)
                 }
-            }
-            else Toast.makeText(this, "Gagal menyimpan quiz", Toast.LENGTH_SHORT).show()
+            } else Toast.makeText(this, "Gagal menyimpan quiz", Toast.LENGTH_SHORT).show()
+        })
+
+        viewModel.availableQuizzes.observe(this, { quizzes ->
+            quizAdapter.submitList(quizzes)
+        })
+
+        viewModel.takenQuizzes.observe(this, { quizStudents ->
+            quizStudentAdapter.submitList(quizStudents)
         })
     }
 
@@ -112,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         fun setupStudentUI() {
             binding.clTeacher.visibility = View.GONE
             binding.clStudent.visibility = View.VISIBLE
-            viewModel.getQuestions(viewModel.quizId)
+            viewModel.getAvailableQuiz()
         }
         if (user.role == RoleEnum.Teacher.code) setupTeacherUI()
         else setupStudentUI()
@@ -120,39 +159,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun initUIListener() {
         with(binding) {
-//            btnCreate.setOnClickListener {
-//                val question1 = etQuestion.text.toString()
-//                val answer1 = etAnswer1.text.toString()
-//                val answer2 = etAnswer2.text.toString()
-//                val answer3 = etAnswer3.text.toString()
-//                val answer4 = etAnswer4.text.toString()
-//
-//                if (question1.isEmpty()) return@setOnClickListener
-//
-//                val answerList = listOf(
-//                    Answer(
-//                        answer = answer1,
-//                        isRightAnswer = true
-//                    ),
-//                    Answer(
-//                        answer = answer2
-//                    ),
-//                    Answer(
-//                        answer = answer3
-//                    ),
-//                    Answer(
-//                        answer = answer4
-//                    )
-//                )
-//
-//                val question = Question(
-//                    question = question1,
-//                    createdBy = user,
-//                    answer = answerList
-//                )
-//
-//                createQuestion(question)
-//            }
+
+            btnAvailableQuiz.setOnClickListener {
+                viewModel.getAvailableQuiz()
+                rvQuestion.hide()
+                rvQuizStudent.hide()
+                rvAvailableQuiz.show()
+            }
+
+            btnTakenQuiz.setOnClickListener {
+                viewModel.getTakenQuiz()
+                rvQuestion.hide()
+                rvQuizStudent.show()
+                rvAvailableQuiz.hide()
+            }
 
             fabAddQuizGroup.setOnClickListener {
                 val builder = AlertDialog.Builder(this@MainActivity)
