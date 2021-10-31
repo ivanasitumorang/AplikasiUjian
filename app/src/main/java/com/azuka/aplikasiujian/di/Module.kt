@@ -1,5 +1,9 @@
 package com.azuka.aplikasiujian.di
 
+import com.azuka.aplikasiujian.data.authentication.AuthenticationDataSource
+import com.azuka.aplikasiujian.data.firestore.FirestoreDataSource
+import com.azuka.aplikasiujian.repository.AuthenticationRepository
+import com.azuka.aplikasiujian.repository.AuthenticationRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -26,4 +30,11 @@ object Module {
 
     @Provides
     fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+
+    @Provides
+    fun provideAuthenticationRepository(
+        authDataSource: AuthenticationDataSource,
+        firestoreDataSource: FirestoreDataSource
+    ): AuthenticationRepository =
+        AuthenticationRepositoryImpl(authDataSource, firestoreDataSource)
 }

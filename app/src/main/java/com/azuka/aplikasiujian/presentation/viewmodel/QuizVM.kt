@@ -83,10 +83,10 @@ class QuizVM @Inject constructor(
 
     private val _createUserStatus = MutableLiveData<Result<Boolean>>()
     val createUserStatus: LiveData<Result<Boolean>> get() = _createUserStatus
-    fun createUser(user: User) {
+    fun createUser(user1: User1) {
         viewModelScope.launch(Dispatchers.IO) {
-            database.collection(Collection.USERS).document(user.id)
-                .set(user, SetOptions.merge())
+            database.collection(Collection.USERS).document(user1.id)
+                .set(user1, SetOptions.merge())
                 .addOnSuccessListener {
                     _createUserStatus.postValue(Result.Success(true))
                 }.addOnFailureListener { e ->
@@ -95,13 +95,13 @@ class QuizVM @Inject constructor(
         }
     }
 
-    private val _activeUser = MutableLiveData<User>()
-    val activeUser: LiveData<User> get() = _activeUser
+    private val _activeUser = MutableLiveData<User1>()
+    val activeUser1: LiveData<User1> get() = _activeUser
     fun getUser() {
         viewModelScope.launch(Dispatchers.IO) {
             database.collection(Collection.USERS).document(auth.currentUser!!.uid)
                 .get().addOnSuccessListener { docSnapshot ->
-                    val user = docSnapshot.toObject<User>()
+                    val user = docSnapshot.toObject<User1>()
                     if (user != null) {
                         _activeUser.postValue(user)
                     } else {
@@ -162,7 +162,7 @@ class QuizVM @Inject constructor(
 //                }
 
             val studentAnswer = StudentAnswer(questions = question)
-            val studentAnswerId = getStudentAnswerNodeId(activeUser.value!!)
+            val studentAnswerId = getStudentAnswerNodeId(activeUser1.value!!)
             database.collection(Collection.STUDENT_ANSWER)
                 .document(studentAnswerId)
                 .collection(Collection.QUIZZES)
@@ -183,7 +183,7 @@ class QuizVM @Inject constructor(
         }
     }
 
-    private fun getStudentAnswerNodeId(user: User): String = with(user) {
+    private fun getStudentAnswerNodeId(user1: User1): String = with(user1) {
         name.removeAllSpaces() + "-" + id
     }
 
@@ -228,7 +228,7 @@ class QuizVM @Inject constructor(
     val takenQuizzes: LiveData<List<QuizStudent>> get() = _takenQuizzes
     fun getTakenQuiz() {
         viewModelScope.launch(Dispatchers.IO) {
-            val studentAnswerId = getStudentAnswerNodeId(activeUser.value!!)
+            val studentAnswerId = getStudentAnswerNodeId(activeUser1.value!!)
             Log.i("Hasil", "quizId = $quizId")
             database.collection(Collection.STUDENT_ANSWER)
                 .get()

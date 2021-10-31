@@ -12,7 +12,7 @@ import androidx.lifecycle.Observer
 import com.azuka.aplikasiujian.R
 import com.azuka.aplikasiujian.base.Result
 import com.azuka.aplikasiujian.data.RoleEnum
-import com.azuka.aplikasiujian.data.User
+import com.azuka.aplikasiujian.data.User1
 import com.azuka.aplikasiujian.databinding.ActivityLoginBinding
 import com.azuka.aplikasiujian.presentation.viewmodel.QuizVM
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -167,7 +167,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupUserRole(account: FirebaseUser) {
-        val user = User(
+        val user = User1(
             id = account.uid,
             name = account.displayName ?: "Nama belum diset"
         )

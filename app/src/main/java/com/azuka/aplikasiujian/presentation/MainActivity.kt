@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var quizAdapter: QuizAdapter
 
-    private var user: User? = null
+    private var user1: User1? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 name = quiz.name,
                 id = quiz.id,
                 startTime = DateTime.now().toString(),
-                answeredBy = user!!
+                answeredBy = user1!!
             )
             viewModel.startQuizByStudent(quizStudent)
         }
@@ -80,9 +80,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initObserver() {
-        viewModel.activeUser.observe(this, {
+        viewModel.activeUser1.observe(this, {
             if (it != null) {
-                user = it
+                user1 = it
                 initUIBasedOnRole(it)
             } else {
                 Toast.makeText(this, "user aktif gada", Toast.LENGTH_SHORT).show()
@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun initUIBasedOnRole(user: User) {
+    private fun initUIBasedOnRole(user1: User1) {
         fun setupTeacherUI() {
             binding.clTeacher.visibility = View.VISIBLE
             binding.clStudent.visibility = View.GONE
@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             binding.clStudent.visibility = View.VISIBLE
             viewModel.getAvailableQuiz()
         }
-        if (user.role == RoleEnum.Teacher.code) setupTeacherUI()
+        if (user1.role == RoleEnum.Teacher.code) setupTeacherUI()
         else setupStudentUI()
     }
 
@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity() {
             name = quizName,
             startTime = startTime.toString(),
             endTime = endTime.toString(),
-            createdBy = user!!
+            createdBy = user1!!
         )
         viewModel.createQuiz(quiz)
     }

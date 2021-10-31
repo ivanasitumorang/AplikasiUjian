@@ -8,7 +8,7 @@ import com.azuka.aplikasiujian.external.removeAllSpaces
  * Android Engineer
  */
 
-data class User(
+data class User1(
     val docType: String = "user",
     val name: String = "",
     val id: String = "",
@@ -42,7 +42,7 @@ data class Quiz(
     val id: String = name.removeAllSpaces().plus("-").plus(System.currentTimeMillis()),
     val startTime: String = "",
     val endTime: String = "",
-    val createdBy: User = User(),
+    val createdBy: User1 = User1(),
 )
 
 data class QuizStudent(
@@ -51,7 +51,7 @@ data class QuizStudent(
     val startTime: String = "",
     val endTime: String = "",
     val score: String = "",
-    val answeredBy: User = User()
+    val answeredBy: User1 = User1()
 )
 
 val questions = listOf(

@@ -10,14 +10,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AplikasiUjian">
-        <activity android:name=".presentation.AddQuestionActivity"></activity>
-        <activity android:name=".presentation.LoginActivity">
+        <activity
+            android:name=".feature.splashscreen.SplashscreenActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".feature.authentication.AuthenticationActivity"
+            android:exported="true">
+        </activity>
+        <activity android:name=".presentation.AddQuestionActivity" />
+        <activity android:name=".presentation.LoginActivity" />
         <activity android:name=".presentation.MainActivity" />
     </application>
 
