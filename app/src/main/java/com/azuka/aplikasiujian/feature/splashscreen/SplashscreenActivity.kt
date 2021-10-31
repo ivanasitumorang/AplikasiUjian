@@ -25,6 +25,7 @@ class SplashscreenActivity : AppCompatActivity() {
             } else {
                 Log.i("Hasil", "user belum logged in")
                 startActivity(Intent(this, AuthenticationActivity::class.java))
+                finish()
             }
         })
     }

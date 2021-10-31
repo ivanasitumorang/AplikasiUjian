@@ -4,4 +4,6 @@
     <string name="quiz_student_score">Nilai : %s</string>
     <string name="quiz_student_day_taken">Dimulai dari : %s (Pukul %s - %s)</string>
     <string name="quiz_student_time_taken">Waktu ujian : %s menit</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
